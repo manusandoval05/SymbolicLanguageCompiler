@@ -1,37 +1,50 @@
-from functools import reduce
+from math import pow
 import re
-from boolean_operations import and_operation, not_operation, or_operation
-def truth_table(expression):
-    pattern = re.compile(r"[({[]([^(){}[\]]*?)[\]})]")
-    return pattern.finditer(expression)
+from boolean_operations import And, If, Not,  Or, Varible
+BOOLEAN_TOKENS = {
+    "¬": Not(), 
+    "~": Not(), 
+    "!": Not(),
 
+    "^": And(), 
+    "&": And(), 
+    "∧": And(), 
+    "·": And(), 
+
+    "v": Or(),
+    "V": Or(),
+    "||": Or(),
+    "+":  Or(),
+    "∨": Or(),
+
+    "=>":If(),  
+    "⇒": If(), 
+    "→":If(), 
+    "⊃": If(), 
+}
 class SymbolicExpression:
     def __init__(self, expression) -> None:
         self.expression = expression
-        self.variables = set(re.findall(r"[a-uw-zA-UW-Z]", expression)) #Find all alphabetic characters that aren't v and save it as a set for individualization
-        self.connectors = {
-            "¬": "not", 
-            "~": "not", 
-            "!": "not",
-
-            "^": "and", 
-            "·": "and",
-            "∧": "and",
-            "&": "and", 
-
-            "v": "or", 
-            "∨": "or",
-            "V": "or", 
-            "+": "or", 
-            "||": "or", 
-        }
+        self.variables = set(re.findall(r"[a-uA-UW-Zw-z]", expression)) #Find all alphabetic characters that aren't v and save it as a set for individualization
     def truth_table(self): 
-        truth_values = {key:True for key in self.variables}
-        formula_list = re.findall(r"[({[](.+?)[(){}[\]]", self.expression) #Extract expressions between parentheses
-        formula_symbols_list = [re.findall(r"\S", formula) for formula in formula_list]  #Individual symbols and variables
-        parsed_formula_symbol_list = [list(map(lambda symbol: truth_values[symbol] if symbol in truth_values.keys() else self.connectors[symbol], formula)) for formula in formula_symbols_list]
-        
-                
-  
+        truth_values = variable_truth_values(self.variables)
+        print(self.variables, truth_values)
+
+def variable_truth_values(variables):
+        truth_values = []
+        l = 2**len(variables)
+        for i in range(l): 
+            truth_values.append({})
+        for e, var in enumerate(variables): 
+            truth = True
+            n = 2**((len(variables))-(e+1))
+            m = n
+            for i, dic in enumerate(truth_values): 
+                dic[var] = truth
+                if n <= i+1:
+                    n += m
+                    truth = not truth
+        return truth_values 
+
 expression = SymbolicExpression("(P^Q)v(¬P^(P v Q)v(P^Q))v(P^¬Q)v(¬P^¬Q)")
 expression.truth_table()
